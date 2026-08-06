@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Ткань города — тритмент · Дмитрий Квашнин</title>
   <style>
 @font-face{font-family:"YS Text";src:url("https://yastatic.net/s3/home/fonts/ys/4/text-regular.woff2") format("woff2");font-weight:400;font-display:swap}
@@ -69,7 +69,7 @@ button{font:inherit}
 
 .stage{height:100%;width:100%;padding:clamp(1.2rem,3.2vh,2.2rem) clamp(1.4rem,4.5vw,3.5rem);display:grid;gap:clamp(1rem,2.2vw,2rem)}
 .compose-pin-left{
-  grid-template-columns:minmax(520px,min(78ch,92%)) 1fr;
+  grid-template-columns:minmax(min(520px,100%),min(78ch,92%)) minmax(0,1fr);
   align-items:center;
   justify-items:start;
   place-content:center start;
@@ -224,7 +224,7 @@ h2, .gallery-title, .copy-block p, .display { text-wrap: pretty; }
 .layout-title .title-inner, .layout-section .section-inner{max-width:none;width:100%;box-sizing:border-box}
 
 .compose-pin-left{
-  grid-template-columns:minmax(480px,min(72ch,88%)) 1fr;
+  grid-template-columns:minmax(min(480px,100%),min(72ch,88%)) minmax(0,1fr);
   align-items:center; justify-items:start; min-height:100%;
   padding-left:clamp(2rem,5vw,4rem)!important;
   padding-right:clamp(2rem,5vw,4rem)!important;
@@ -252,10 +252,10 @@ h2, .gallery-title, .copy-block p, .display { text-wrap: pretty; }
 }
 
 .compose-split-rtl-stack, .compose-split-ltr-stack, .compose-split-mid, .compose-split-rtl, .compose-split-ltr{
-  grid-template-columns:minmax(280px,.95fr) minmax(300px,1.1fr);
+  grid-template-columns:minmax(0,.95fr) minmax(0,1.1fr);
   align-items:center; min-height:0; height:100%;
 }
-.compose-split-rtl-stack{grid-template-columns:minmax(300px,1.05fr) minmax(260px,.95fr)}
+.compose-split-rtl-stack{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)}
 .compose-split-rtl-stack .copy-block{order:2}
 .compose-split-rtl-stack .media-stack, .compose-split-rtl-stack .gallery, .compose-split-rtl-stack .media-block{order:1}
 .compose-split-ltr-stack .copy-block{order:1}
@@ -424,6 +424,263 @@ h2, .gallery-title, .copy-block p, .display { text-wrap: pretty; }
 
 .copy-block.wide{max-width:min(96ch,100%)!important}
 @media (prefers-reduced-motion:reduce){.slide,.progress>i{transition:none!important}}
+
+/* ===== mobile / iPhone (must be last — overrides minmax(480px) polish) ===== */
+@supports (height: 100dvh) {
+  html, body, .app { height: 100dvh; }
+}
+@media (max-width: 900px) {
+  html, body {
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+  }
+  .app {
+    height: 100dvh;
+    max-height: 100dvh;
+    min-height: 100dvh;
+  }
+  .topbar {
+    height: calc(52px + env(safe-area-inset-top, 0px));
+    padding: env(safe-area-inset-top, 0px) max(.7rem, env(safe-area-inset-right, 0px)) 0 max(.7rem, env(safe-area-inset-left, 0px));
+    gap: .5rem;
+  }
+  .brand {
+    font-size: .78rem;
+    max-width: min(46vw, 11.5rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .top-actions { gap: .35rem; flex-shrink: 0; }
+  .btn { padding: .42rem .65rem; font-size: .78rem; border-radius: 8px; }
+  .counter { min-width: 3.6rem; font-size: .72rem; }
+  .progress { top: calc(52px + env(safe-area-inset-top, 0px)); }
+  .deck {
+    margin-top: calc(52px + env(safe-area-inset-top, 0px));
+    height: calc(100dvh - 52px - env(safe-area-inset-top, 0px));
+    overflow: hidden;
+  }
+  .slide {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
+  .slide-inner,
+  .stage {
+    height: auto !important;
+    min-height: 100%;
+    width: 100%;
+    max-width: 100%;
+  }
+  .stage {
+    padding: 1rem 1rem 5.25rem !important;
+    gap: 1rem !important;
+    align-content: start !important;
+  }
+  .fullbleed-inner {
+    padding: 1.35rem 1.1rem 5rem !important;
+    height: auto !important;
+    min-height: 100%;
+  }
+  .title-inner,
+  .section-inner {
+    height: auto !important;
+    min-height: 100%;
+    justify-content: flex-end;
+    padding: 1.5rem 1.15rem 5rem !important;
+  }
+
+  /* kill fixed minmax widths that blow past ~390px */
+  .compose-pin-left,
+  .compose-pin-right,
+  .compose-split-ltr,
+  .compose-split-rtl,
+  .compose-split-rtl-stack,
+  .compose-split-ltr-stack,
+  .compose-split-mid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto;
+    place-content: start stretch !important;
+    align-items: stretch !important;
+    justify-items: stretch !important;
+    height: auto !important;
+    min-height: 100%;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    padding-bottom: 5.25rem !important;
+    gap: 1rem !important;
+  }
+  .compose-pin-right .copy-block,
+  .compose-split-rtl .copy-block,
+  .compose-split-rtl-stack .copy-block {
+    grid-column: 1 !important;
+    justify-self: stretch !important;
+    order: 0 !important;
+    max-width: 100% !important;
+  }
+  .compose-split-rtl .gallery,
+  .compose-split-rtl .media-block,
+  .compose-split-rtl-stack .media-stack,
+  .compose-split-rtl-stack .gallery,
+  .compose-split-rtl-stack .media-block {
+    order: 1 !important;
+  }
+  .compose-pin-left .copy-block,
+  .compose-pin-center .copy-block,
+  .compose-pin-top .copy-block,
+  .compose-pin-full .copy-block,
+  .compose-pin-full .accent-panel,
+  .accent-panel,
+  .sound-panel,
+  .copy-block.wide {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .compose-pin-full {
+    padding: 1rem 0 4.5rem !important;
+  }
+  .compose-pin-full .copy-block,
+  .compose-pin-full .accent-panel {
+    height: auto !important;
+    padding: 1.1rem 1rem !important;
+  }
+  .compose-pin-full h2 {
+    font-size: clamp(1.85rem, 9vw, 2.6rem) !important;
+    max-width: 100% !important;
+  }
+  .compose-pin-full p {
+    font-size: 1rem !important;
+    max-width: 100% !important;
+  }
+  .copy-block h2,
+  .gallery-title,
+  .compose-pin-left .copy-block h2,
+  .compose-pin-top .copy-block h2 {
+    font-size: clamp(1.45rem, 6.5vw, 1.9rem) !important;
+    max-width: 100% !important;
+  }
+  .copy-block p,
+  .num-item p,
+  .rm-step p,
+  .rm-lead,
+  .sound-list li {
+    font-size: 1.02rem !important;
+    max-width: 100% !important;
+  }
+  .layout-title .display,
+  .layout-section .display {
+    font-size: clamp(2.1rem, 11vw, 3.2rem) !important;
+    max-width: 100% !important;
+  }
+  .logos { margin-bottom: 1rem; font-size: .78rem; gap: .4rem; }
+  .num-item { gap: .7rem; }
+  .num-item .num { font-size: clamp(1.8rem, 8vw, 2.4rem); }
+
+  .gallery.cols-2,
+  .gallery.cols-3,
+  .gallery.cols-4 {
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+  .compose-gallery-top .gallery,
+  .compose-gallery-mid .gallery,
+  .compose-gallery-row .gallery,
+  .fit-natural.compose-gallery-mid .gallery,
+  .fit-natural.compose-gallery-row .gallery.cols-4,
+  #s-gfx-mood.fit-natural .gallery.cols-4 {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+  .compose-split-ltr .gallery,
+  .compose-split-rtl .gallery {
+    max-height: none !important;
+  }
+  .fit-natural.compose-gallery-row .gallery.cols-4 figure,
+  .fit-natural.compose-gallery-row .gallery.cols-4 img,
+  #s-reflections.fit-natural .gallery.cols-4 figure {
+    max-height: none !important;
+    aspect-ratio: 4 / 5;
+  }
+  .fit-natural.compose-gallery-mid .gallery figure {
+    height: auto !important;
+    min-height: 0;
+  }
+  .fit-natural.compose-gallery-mid .gallery img {
+    height: auto !important;
+    max-height: 42vh !important;
+    object-fit: contain !important;
+  }
+  .media-block,
+  .gallery,
+  .media-stack {
+    height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
+  }
+  .media-block.solo img,
+  .compose-hero-top .media-block.solo img {
+    max-width: 100% !important;
+    max-height: min(52vh, 420px) !important;
+    width: auto;
+    height: auto;
+  }
+  .media-stack {
+    justify-self: stretch !important;
+    margin-inline: 0 !important;
+  }
+  .media-stack img {
+    width: 100% !important;
+    height: auto !important;
+  }
+  .compose-roadmap-col {
+    max-width: 100% !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    padding-bottom: 5rem !important;
+  }
+  .col-grid { grid-template-columns: 1fr !important; }
+  .accent-panel.padded,
+  .compose-pin-left .accent-panel {
+    padding: 1.1rem 1rem !important;
+  }
+  .slide-num {
+    position: sticky;
+    float: right;
+    right: auto;
+    bottom: auto;
+    margin: .5rem 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .next-hint { display: none !important; }
+  .nav-side {
+    display: none !important; /* 38 dots = trash on phone; topbar ← → */
+  }
+  .hint {
+    display: none !important;
+  }
+  .toast {
+    left: .75rem;
+    right: .75rem;
+    top: calc(60px + env(safe-area-inset-top, 0px));
+    max-width: none;
+    font-size: .82rem;
+  }
+}
+@media (max-width: 480px) {
+  .gallery.cols-2,
+  .gallery.cols-3,
+  .gallery.cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+  #exportBtn { display: none; }
+}
 </style>
 </head>
 <body>
@@ -1220,8 +1477,10 @@ h2, .gallery-title, .copy-block p, .display { text-wrap: pretty; }
   const dotsWrap = document.getElementById('dots');
   const toast = document.getElementById('toast');
   const progress = document.getElementById('progressFill');
+  const deck = document.getElementById('deck');
   const EXPORT = 'export/tkan_goroda_treatment.pptx';
   let i = 0;
+  const isMobile = () => window.matchMedia('(max-width:900px)').matches;
 
   slides.forEach((_, idx) => {
     const b = document.createElement('button');
@@ -1236,6 +1495,21 @@ h2, .gallery-title, .copy-block p, .display { text-wrap: pretty; }
   function fitMediaStacks(scope) {
     const root = scope || slides[i];
     if (!root) return;
+    if (isMobile()) {
+      root.querySelectorAll('.media-stack').forEach((stack) => {
+        stack.style.width = '100%';
+        stack.style.maxWidth = '100%';
+        stack.style.marginInline = '0';
+        stack.style.justifySelf = 'stretch';
+        stack.querySelectorAll('img').forEach((img) => {
+          img.style.width = '100%';
+          img.style.height = 'auto';
+          img.style.maxHeight = 'none';
+          img.style.objectFit = 'unset';
+        });
+      });
+      return;
+    }
     const stage = root.querySelector('.stage') || root;
     const pad = 16;
     const avail = Math.max(160, stage.clientHeight - pad);
@@ -1275,6 +1549,7 @@ h2, .gallery-title, .copy-block p, .display { text-wrap: pretty; }
     dots.forEach((d, k) => d.classList.toggle('active', k === i));
     counter.textContent = String(i + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
     if (progress) progress.style.width = ((i + 1) / slides.length * 100).toFixed(2) + '%';
+    slides[i].scrollTop = 0;
     [i, i + 1, i + 2].forEach((k) => {
       const s = slides[k % slides.length];
       s.querySelectorAll('img').forEach((img) => {
@@ -1299,12 +1574,31 @@ h2, .gallery-title, .copy-block p, .display { text-wrap: pretty; }
     if (e.key === 'End') go(slides.length - 1);
   });
 
-  document.getElementById('deck').addEventListener('click', (e) => {
+  deck.addEventListener('click', (e) => {
+    if (isMobile()) return;
     if (e.target.closest('a,button,img,figure')) return;
     const x = e.clientX / window.innerWidth;
     if (x > 0.66) go(i + 1);
     else if (x < 0.33) go(i - 1);
   });
+
+  let touchX = 0, touchY = 0, touchActive = false;
+  deck.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    touchActive = true;
+    touchX = e.touches[0].clientX;
+    touchY = e.touches[0].clientY;
+  }, { passive: true });
+  deck.addEventListener('touchend', (e) => {
+    if (!touchActive) return;
+    touchActive = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchX;
+    const dy = t.clientY - touchY;
+    if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
+    if (dx < 0) go(i + 1);
+    else go(i - 1);
+  }, { passive: true });
 
   function showToast(msg) {
     toast.textContent = msg;
