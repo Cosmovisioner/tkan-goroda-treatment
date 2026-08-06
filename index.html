@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ткань города — тритмент · Дмитрий Квашнин</title>
+  <style>
+@font-face{font-family:"YS Text";src:url("https://yastatic.net/s3/home/fonts/ys/4/text-regular.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"YS Text";src:url("https://yastatic.net/s3/home/fonts/ys/4/text-medium.woff2") format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:"YS Text";src:url("https://yastatic.net/s3/home/fonts/ys/4/text-bold.woff2") format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"YS Display";src:url("https://yastatic.net/s3/home/fonts/ys/4/display-bold.woff2") format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"YS Display";src:url("https://yastatic.net/s3/home/fonts/ys/4/display-heavy.woff2") format("woff2");font-weight:800;font-display:swap}
+
+:root{
+  --ya-red:#FC3F1D; --ya-red-deep:#E03516; --go-yellow:#FFCC00;
+  --ink:#0A0A0A; --mute:#5C5C5C; --line:#E8E8E8; --paper:#F4F3F0;
+  --asphalt:#111; --white:#fff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--white);color:var(--ink);
+  font-family:"YS Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit}
+
+.app{height:100%;display:flex;flex-direction:column;background:var(--white)}
+.topbar{
+  position:fixed;inset:0 0 auto 0;z-index:50;height:56px;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  padding:0 1rem 0 1.1rem;
+  background:rgba(10,10,10,.88);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,255,255,.08);color:#fff;
+}
+.brand{display:flex;align-items:center;gap:.6rem;font-family:"YS Display",sans-serif;font-weight:700;letter-spacing:-.02em}
+.brand .ya{width:26px;height:26px;border-radius:50%;background:var(--ya-red);display:grid;place-items:center;font-size:13px;font-weight:800}
+.top-actions{display:flex;align-items:center;gap:.5rem}
+.btn{appearance:none;border:0;border-radius:10px;padding:.55rem 1rem;cursor:pointer;font-weight:500;font-size:.88rem;transition:transform .2s,background .2s}
+.btn:hover{transform:translateY(-1px)}
+.btn-red{background:var(--ya-red);color:#fff}
+.btn-red:hover{background:var(--ya-red-deep)}
+.btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.28)}
+.btn-ghost:hover{border-color:#fff}
+.counter{font-size:.8rem;color:rgba(255,255,255,.55);min-width:4.5rem;text-align:right}
+.progress{position:fixed;top:56px;left:0;right:0;height:3px;z-index:49;background:rgba(0,0,0,.06)}
+.progress>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ya-red),var(--go-yellow));transition:width .35s cubic-bezier(.22,1,.36,1)}
+
+.deck{flex:1;margin-top:56px;position:relative;overflow:hidden;height:calc(100% - 56px);background:var(--white)}
+.slide{
+  position:absolute;inset:0;opacity:0;pointer-events:none;
+  transform:translateY(10px) scale(.988);
+  transition:opacity .4s cubic-bezier(.22,1,.36,1), transform .4s cubic-bezier(.22,1,.36,1);
+  background:var(--white);overflow:hidden;
+}
+.slide.active{opacity:1;pointer-events:auto;transform:none;z-index:2}
+
+.doodle{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:.5}
+.doodle path{stroke-linecap:round;stroke-linejoin:round;fill:none}
+.doodle .d-red{stroke:var(--ya-red);stroke-width:2.4;stroke-dasharray:7 11;opacity:.55}
+.doodle .d-yel{stroke:var(--go-yellow);stroke-width:2.8;stroke-dasharray:5 9;opacity:.7}
+.doodle .thin{stroke-width:1.6;opacity:.45}
+.slide.v1 .doodle{transform:scaleX(-1)}
+.slide.v2 .doodle{transform:rotate(180deg)}
+.slide.v3 .doodle{transform:scaleY(-1)}
+.layout-title .doodle .d-red,.layout-section .doodle .d-red{opacity:.75}
+.layout-title .doodle .d-yel{opacity:.85}
+.layout-section .doodle .d-yel{stroke:#fff;opacity:.35}
+.layout-section .doodle .d-red{stroke:rgba(255,255,255,.55)}
+
+.slide-inner{position:relative;z-index:2;height:100%;min-height:100%}
+.slide-num{position:absolute;right:1.1rem;bottom:.85rem;z-index:3;font-size:.7rem;color:var(--mute);letter-spacing:.06em}
+
+.stage{height:100%;width:100%;padding:clamp(1.2rem,3.2vh,2.2rem) clamp(1.4rem,4.5vw,3.5rem);display:grid;gap:clamp(1rem,2.2vw,2rem)}
+.compose-pin-left{
+  grid-template-columns:minmax(520px,min(78ch,92%)) 1fr;
+  align-items:center;
+  justify-items:start;
+  place-content:center start;
+  min-height:100%;
+}
+.compose-pin-left .copy-block{
+  grid-column:1;
+  max-width:min(78ch, 92vw);
+  width:100%;
+  text-align:left;
+  justify-self:start;
+  align-self:center;
+}
+.compose-pin-left .copy-block h2{max-width:28ch;font-size:clamp(1.7rem,3.2vw,2.7rem)}
+.compose-pin-left .copy-block p{max-width:78ch}
+.compose-pin-left .accent-panel{max-width:min(78ch,92vw);width:100%}
+.compose-pin-left .copy-block::before{
+  content:"";display:block;width:48px;height:4px;border-radius:2px;
+  background:linear-gradient(90deg,var(--ya-red),var(--go-yellow));margin:0 0 1.1rem;
+}
+.compose-pin-right{grid-template-columns:1fr minmax(280px,52ch);align-items:center}
+.compose-pin-right .copy-block{grid-column:2;max-width:52ch;justify-self:end}
+.compose-pin-top{grid-template-rows:auto 1fr;align-content:start}
+.compose-pin-top .copy-block{max-width:min(72ch,100%);width:100%}
+.compose-pin-top .copy-block h2{max-width:28ch;font-size:clamp(1.8rem,4vw,3rem)}
+.compose-pin-bottom{align-content:end;align-items:end;grid-template-rows:1fr auto}
+.compose-pin-bottom .copy-block{max-width:min(68ch,100%);padding-bottom:.5rem}
+.compose-pin-center{
+  display:grid;place-content:center start;justify-items:start;min-height:100%;
+}
+.compose-pin-center .copy-block{max-width:min(78ch,92vw);width:100%;text-align:left}
+
+.compose-pin-full{place-items:stretch;padding:clamp(1.5rem,5vh,3.5rem) clamp(1.5rem,6vw,5rem)}
+.compose-pin-full .copy-block,.compose-pin-full .accent-panel{
+  width:100%;max-width:none;height:100%;display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(1.5rem,4vh,3rem) clamp(1.5rem,4vw,3.5rem);
+}
+.compose-pin-full h2{font-size:clamp(2.4rem,7vw,5.5rem)!important;max-width:14ch!important;line-height:.95!important;margin-bottom:1.2rem!important}
+.compose-pin-full p{max-width:68ch;font-size:clamp(1.05rem,1.5vw,1.25rem)}
+.compose-split-ltr{grid-template-columns:minmax(260px,.9fr) minmax(320px,1.15fr);align-items:center}
+.compose-split-rtl{grid-template-columns:minmax(320px,1.15fr) minmax(260px,.9fr);align-items:center}
+.compose-split-rtl .copy-block{order:2}
+.compose-split-rtl .gallery,.compose-split-rtl .media-block{order:1}
+.compose-gallery-top{grid-template-rows:auto 1fr;align-content:stretch}
+.compose-gallery-top .gallery-title{margin:0}
+.compose-gallery-top .gallery{min-height:0;height:100%}
+@media(max-width:960px){
+  .compose-pin-left,.compose-pin-right,.compose-split-ltr,.compose-split-rtl{grid-template-columns:1fr;overflow:auto;align-content:start}
+  .compose-pin-right .copy-block,.compose-split-rtl .copy-block{grid-column:1;justify-self:start;order:0}
+  .compose-split-rtl .gallery,.compose-split-rtl .media-block{order:1}
+}
+
+.copy-block h2,.gallery-title{
+  font-family:"YS Display",sans-serif;font-weight:800;
+  font-size:clamp(1.45rem,2.8vw,2.4rem);letter-spacing:-.03em;line-height:1.1;
+  margin:0 0 .85rem;max-width:22ch;
+}
+.copy-block h2 em,.gallery-title em,.display em{color:var(--ya-red);font-style:normal}
+.copy-block p{font-size:clamp(.95rem,1.25vw,1.12rem);line-height:1.52;color:#2a2a2a;margin:0 0 .85rem;max-width:72ch}
+.copy-block p:last-child{margin-bottom:0}
+.accent-panel{
+  background:linear-gradient(135deg,#fff 0%,#FFF6F2 45%,#FFF1C9 100%);
+  border:1px solid rgba(252,63,29,.12);border-left:5px solid var(--ya-red);
+  border-radius:4px 24px 24px 4px;box-shadow:0 18px 50px rgba(252,63,29,.08);
+}
+
+/* Media rules:
+   - solo / hero: keep aspect (contain), no forced crop
+   - gallery grids: slight crop OK (cover) so rows/cols stay even */
+.media-block,.gallery{display:grid;gap:.65rem;min-height:0;width:100%;height:100%;align-content:stretch}
+.media-block.solo{place-items:center;align-content:center}
+.gallery.cols-1{grid-template-columns:1fr}
+.gallery.cols-2{grid-template-columns:1fr 1fr}
+.gallery.cols-3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:800px){.gallery.cols-3{grid-template-columns:1fr 1fr}}
+
+.gallery figure{
+  margin:0;width:100%;height:100%;min-height:0;overflow:hidden;
+  border-radius:4px 14px 14px 4px;border-left:3px solid var(--ya-red);
+  background:var(--paper);box-shadow:0 10px 28px rgba(0,0,0,.1);
+  position:relative;
+}
+.gallery img{
+  display:block;width:100%;height:100%;
+  object-fit:cover;object-position:center; /* even grid */
+}
+
+.media-block.solo figure{
+  margin:0;display:flex;align-items:center;justify-content:center;
+  background:transparent;border:0;overflow:visible;width:100%;height:100%;
+}
+.media-block.solo img{
+  display:block;max-width:100%;max-height:min(68vh,620px);width:auto;height:auto;
+  object-fit:contain;border-radius:4px 14px 14px 4px;border-left:3px solid var(--ya-red);
+  box-shadow:0 10px 28px rgba(0,0,0,.1);
+}
+
+.compose-split-ltr .gallery,.compose-split-rtl .gallery{
+  max-height:calc(100vh - 110px);
+  grid-auto-rows:1fr;
+}
+.compose-gallery-top .gallery{
+  max-height:calc(100vh - 140px);
+  grid-auto-rows:1fr;
+  min-height:min(62vh,560px);
+}
+.compose-gallery-top .gallery.cols-2{grid-template-rows:1fr 1fr}
+.compose-gallery-top .gallery.cols-3{grid-template-rows:1fr 1fr}
+.compose-split-ltr .gallery.cols-2,.compose-split-rtl .gallery.cols-2{grid-template-rows:1fr 1fr}
+.compose-split-ltr .gallery.cols-3,.compose-split-rtl .gallery.cols-3{grid-template-rows:1fr 1fr}
+
+.layout-title{background:#0e0e0e;color:#fff}
+.title-inner{
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:clamp(2rem,6vh,4rem) clamp(1.5rem,5vw,4rem) clamp(3rem,8vh,5rem);
+  max-width:1100px;margin:0 auto;width:100%;height:100%;
+  background:
+    radial-gradient(ellipse 65% 45% at 85% 8%, rgba(252,63,29,.48), transparent 55%),
+    radial-gradient(ellipse 40% 35% at 8% 88%, rgba(255,204,0,.16), transparent 50%);
+}
+.layout-title .display{font-family:"YS Display",sans-serif;font-weight:800;font-size:clamp(2.4rem,7.5vw,5.2rem);letter-spacing:-.04em;line-height:1;margin:0;max-width:16ch;color:#fff}
+.layout-title .display em{color:var(--ya-red)}
+.layout-title .sub{color:rgba(255,255,255,.78);font-size:clamp(1.05rem,2vw,1.3rem);margin:.9rem 0 0;max-width:40ch}
+.layout-title .meta{color:rgba(255,255,255,.5);font-size:.9rem;letter-spacing:.06em;text-transform:uppercase;margin-top:.45rem}
+.logos{display:flex;flex-wrap:wrap;align-items:center;gap:.55rem;margin-bottom:1.6rem;font-size:.85rem;font-weight:500}
+.logo-ya{width:32px;height:32px;border-radius:50%;background:var(--ya-red);display:grid;place-items:center;box-shadow:0 0 0 6px rgba(252,63,29,.2)}
+.logo-ya i{font-style:normal;font-family:"YS Display",sans-serif;font-weight:800;color:#fff}
+.logo-word{color:rgba(255,255,255,.92)}
+.logo-sep{color:rgba(255,255,255,.35)}
+.layout-section{background:var(--ya-red);color:#fff}
+.section-inner{display:flex;flex-direction:column;justify-content:center;padding:clamp(2rem,6vh,4rem) clamp(1.5rem,5vw,4rem);height:100%;max-width:1100px;margin:0 auto;width:100%}
+.layout-section .display{font-family:"YS Display",sans-serif;font-weight:800;font-size:clamp(2.6rem,8vw,5.4rem);letter-spacing:-.04em;line-height:.98;margin:0;max-width:14ch;color:#fff}
+.layout-section .display em{color:var(--go-yellow)}
+
+.nav-side{position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);z-index:40;
+  display:flex;flex-wrap:wrap;justify-content:center;gap:.32rem;max-width:min(92vw,760px);
+  padding:.38rem .5rem;background:rgba(0,0,0,.58);border-radius:999px;backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.08)}
+.dot{width:7px;height:7px;border-radius:50%;border:0;background:rgba(255,255,255,.32);cursor:pointer;padding:0}
+.dot.active{background:var(--ya-red);transform:scale(1.35);box-shadow:0 0 0 3px rgba(252,63,29,.25)}
+.hint{position:fixed;left:1rem;bottom:1rem;z-index:40;font-size:.72rem;color:rgba(0,0,0,.35)}
+.toast{position:fixed;top:70px;right:1rem;z-index:60;background:#111;color:#fff;padding:.75rem 1rem;border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);opacity:0;transform:translateY(-6px);transition:.3s;pointer-events:none;font-size:.88rem;max-width:28rem}
+.toast.show{opacity:1;transform:none}
+
+
+/* ===== comment fixes / AD polish ===== */
+h2, .gallery-title, .copy-block p, .display { text-wrap: pretty; }
+.copy-block p, .num-item p, .col-card p, .rm-step p { text-wrap: pretty; hyphens: manual; }
+
+.fullbleed-inner{max-width:none!important;width:100%!important;height:100%!important;margin:0!important;padding:clamp(2.5rem,7vh,5rem) clamp(2rem,6vw,5rem)!important}
+.layout-title .title-inner, .layout-section .section-inner{max-width:none;width:100%;box-sizing:border-box}
+
+.compose-pin-left{
+  grid-template-columns:minmax(480px,min(72ch,88%)) 1fr;
+  align-items:center; justify-items:start; min-height:100%;
+  padding-left:clamp(2rem,5vw,4rem)!important;
+  padding-right:clamp(2rem,5vw,4rem)!important;
+}
+.compose-pin-left .copy-block{max-width:min(72ch,100%); width:100%}
+.compose-pin-left .copy-block p{max-width:72ch}
+.accent-panel.padded, .compose-pin-left .accent-panel{
+  padding:clamp(1.6rem,3.5vh,2.6rem) clamp(1.6rem,3.5vw,2.8rem)!important;
+  box-sizing:border-box;
+}
+.accent-panel{border-left-width:5px}
+
+.num-list{display:flex;flex-direction:column;gap:1.25rem;margin-top:.5rem}
+.num-item{display:grid;grid-template-columns:auto 1fr;gap:1rem;align-items:start}
+.num-item .num{
+  font-family:"YS Display",sans-serif;font-weight:800;font-size:clamp(2.2rem,4vw,3.4rem);
+  line-height:1;color:var(--ya-red);letter-spacing:-.04em;min-width:1.4ch;
+}
+.num-item p{margin:0;max-width:62ch}
+
+.next-hint{
+  position:absolute;right:clamp(1.5rem,4vw,3rem);bottom:clamp(2rem,5vh,3.5rem);
+  font-family:"YS Display",sans-serif;font-weight:700;font-size:1rem;color:var(--ya-red);
+  letter-spacing:.02em;
+}
+
+.compose-split-rtl-stack, .compose-split-ltr-stack, .compose-split-mid, .compose-split-rtl, .compose-split-ltr{
+  grid-template-columns:minmax(280px,.95fr) minmax(300px,1.1fr);
+  align-items:center; min-height:0; height:100%;
+}
+.compose-split-rtl-stack{grid-template-columns:minmax(300px,1.05fr) minmax(260px,.95fr)}
+.compose-split-rtl-stack .copy-block{order:2}
+.compose-split-rtl-stack .media-stack, .compose-split-rtl-stack .gallery, .compose-split-rtl-stack .media-block{order:1}
+.compose-split-ltr-stack .copy-block{order:1}
+.compose-split-mid{align-content:center; align-items:center}
+
+/* стек: ширина колонки = сетка; высота родная; JS уменьшает ширину если не влезает — БЕЗ кропа */
+.media-stack{
+  display:flex;flex-direction:column;gap:.55rem;width:100%;max-width:100%;
+  max-height:none;justify-content:center;overflow:visible;align-items:stretch;
+  min-height:0; align-self:center;
+}
+.media-stack figure{margin:0;flex:0 0 auto;display:block;width:100%;background:transparent;overflow:visible}
+
+.fit-natural .media-stack,
+.fit-contain .media-stack{
+  max-height:none; overflow:visible; justify-content:center; gap:.55rem;
+}
+.fit-natural .media-stack img,
+.fit-contain .media-stack img,
+.fit-natural .gallery img{
+  display:block;
+  border-radius:4px 14px 14px 4px;border-left:3px solid var(--ya-red);
+  box-shadow:0 10px 28px rgba(0,0,0,.1);
+}
+.fit-natural .media-stack figure,
+.fit-contain .media-stack figure,
+.fit-natural .gallery figure{
+  background:transparent!important;
+  width:100%!important; border:0!important; box-shadow:none!important; padding:0!important;
+  margin:0; aspect-ratio:auto!important; height:auto!important;
+  display:block!important; overflow:visible!important;
+}
+.fit-natural .gallery{ width:100%; gap:.55rem; }
+.fit-natural .media-stack img,
+.fit-contain .media-stack img{
+  width:100%!important; height:auto!important; max-height:none!important;
+  object-fit:unset!important; object-position:center; background:transparent;
+}
+.fit-contain .gallery img, .fit-contain .media-block.solo img,
+.compose-hero-top .solo img{
+  width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain!important;
+  border-radius:4px 14px 14px 4px;border-left:3px solid var(--ya-red);box-shadow:0 10px 28px rgba(0,0,0,.1);
+}
+.fit-contain .gallery figure{background:transparent;overflow:visible;height:auto}
+
+/* ROW: equal-height cells, contain (grid without crop) */
+.compose-gallery-row{
+  grid-template-rows:auto 1fr; align-content:stretch; justify-items:stretch;
+  gap:.55rem; padding-top:clamp(.6rem,1.5vh,1.1rem)!important;
+  padding-bottom:clamp(.6rem,1.5vh,1.1rem)!important;
+}
+.compose-gallery-row .gallery-title{margin:0 0 .35rem}
+.compose-gallery-row .gallery{height:100%!important; max-height:none; align-content:stretch; align-items:stretch}
+.gallery.cols-4{grid-template-columns:repeat(4,minmax(0,1fr)); gap:.55rem}
+/* row moodboards: large equal 4:5 tiles, pack content (no huge empty floor) */
+.compose-gallery-row.fit-natural,
+.fit-natural.compose-gallery-row{
+  align-content:center!important; justify-items:stretch;
+  padding-top:clamp(.4rem,1vh,.8rem)!important;
+  padding-bottom:clamp(.4rem,1vh,.8rem)!important;
+  padding-left:clamp(1rem,2.2vw,1.8rem)!important;
+  padding-right:clamp(1rem,2.2vw,1.8rem)!important;
+}
+.fit-natural.compose-gallery-row .gallery.cols-4{
+  height:auto!important; grid-auto-rows:auto; align-items:start; justify-items:stretch;
+  width:100%; max-height:none;
+}
+.fit-natural.compose-gallery-row .gallery.cols-4 figure{
+  height:auto!important; aspect-ratio:4/5; width:100%;
+  max-height:min(68vh,640px);
+  display:block!important;
+  background:transparent!important; overflow:hidden!important;
+  border-left:3px solid var(--ya-red); border-radius:4px 14px 14px 4px;
+  align-self:start;
+}
+.fit-natural.compose-gallery-row .gallery.cols-4 img{
+  width:100%!important; height:auto!important; aspect-ratio:4/5;
+  object-fit:cover!important; object-position:center;
+  max-height:min(68vh,640px)!important; border:0!important; box-shadow:none!important; border-radius:0;
+  display:block;
+}
+/* reflections: keep full frame (contain), same tile shell */
+#s-reflections.fit-natural .gallery.cols-4 img{
+  object-fit:contain!important;
+}
+#s-reflections.fit-natural .gallery.cols-4 figure{
+  aspect-ratio:3/4; max-height:min(68vh,640px);
+}
+/* gfx moodboard: fill vertical — equal AR so cover ≈ no content loss, no empty floor */
+#s-gfx-mood.fit-natural.compose-gallery-row{
+  grid-template-rows:auto 1fr; align-content:stretch!important;
+}
+#s-gfx-mood.fit-natural .gallery.cols-4{
+  height:min(72vh,680px)!important; align-items:stretch!important;
+}
+#s-gfx-mood.fit-natural .gallery.cols-4 figure{
+  height:100%!important; max-height:none!important; aspect-ratio:auto;
+  align-self:stretch;
+}
+#s-gfx-mood.fit-natural .gallery.cols-4 img{
+  width:100%!important; height:100%!important; aspect-ratio:auto;
+  object-fit:cover!important; max-height:none!important;
+}
+
+/* MID grids: even rows/cols, contain — исходный кадр целиком, сетка ровная */
+.compose-gallery-mid{grid-template-rows:auto 1fr; align-content:stretch; justify-items:stretch; gap:.5rem}
+.compose-gallery-mid .gallery-title{margin:0 0 .25rem}
+.compose-gallery-mid .gallery{height:100%!important; min-height:0; gap:.55rem}
+.compose-gallery-mid .gallery.cols-2{grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:repeat(2,minmax(0,1fr))}
+.compose-gallery-mid .gallery.cols-3{grid-template-columns:repeat(3,minmax(0,1fr)); grid-template-rows:repeat(2,minmax(0,1fr))}
+.fit-natural.compose-gallery-mid .gallery{
+  height:min(74vh,720px)!important; max-height:calc(100vh - 130px);
+  align-items:stretch; align-content:stretch;
+}
+.fit-natural.compose-gallery-mid .gallery figure{
+  height:100%!important; width:100%!important;
+  display:flex!important; align-items:center; justify-content:center;
+  background:transparent!important; overflow:hidden!important;
+}
+.fit-natural.compose-gallery-mid .gallery img{
+  width:100%!important; height:100%!important;
+  object-fit:contain!important; object-position:center; max-height:none!important;
+}
+
+.compose-hero-top{grid-template-rows:auto 1fr; align-content:stretch}
+.compose-hero-top .media-block.solo, .compose-hero-top .gallery{min-height:0; height:100%}
+.compose-hero-top .media-block.solo img{max-height:calc(100vh - 160px); width:auto; max-width:100%; object-fit:contain}
+
+.compose-cols{display:flex;flex-direction:column;justify-content:center;gap:1.25rem;min-height:100%}
+.col-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+@media(max-width:900px){.col-grid{grid-template-columns:1fr}}
+.col-card{
+  background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--ya-red);
+  border-radius:4px 18px 18px 4px;padding:1.25rem 1.2rem;min-height:100%;
+}
+.col-num{font-family:"YS Display",sans-serif;font-weight:800;font-size:clamp(2.5rem,5vw,4rem);color:var(--ya-red);line-height:.9;margin-bottom:.5rem}
+.col-card h3{font-family:"YS Display",sans-serif;font-size:1.15rem;margin:0 0 .55rem;letter-spacing:-.02em}
+.col-card p{font-size:.92rem;margin:0;color:#333;max-width:none}
+
+/* roadmap: single column, no empty right half */
+.compose-roadmap-col{
+  display:flex!important; flex-direction:column; justify-content:center; align-items:stretch;
+  max-width:min(720px,92%); width:100%; margin:0 auto; min-height:100%;
+  padding-left:clamp(1.5rem,4vw,3rem)!important; padding-right:clamp(1.5rem,4vw,3rem)!important;
+}
+.compose-roadmap-col .copy-block.wide{max-width:100%; width:100%}
+.rm-lead{margin:.35rem 0 0; max-width:62ch; font-size:1.05rem; color:#333}
+.roadmap{display:flex;flex-direction:column;align-items:stretch;gap:0;margin-top:1.15rem;max-width:100%}
+.rm-step{
+  background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--ya-red);
+  border-radius:4px 14px 14px 4px;padding:.9rem 1.1rem 1rem;width:100%;box-sizing:border-box;
+}
+.rm-n{display:inline-block;font-family:"YS Display",sans-serif;font-weight:800;color:var(--ya-red);font-size:1.35rem;margin-bottom:.3rem}
+.rm-step p{margin:0;font-size:.95rem;max-width:none;line-height:1.45}
+.rm-arrow{display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--ya-red);font-weight:700;padding:.2rem 0;line-height:1}
+.rm-arrow::before{content:"↓"}
+
+.sound-panel{max-width:min(68ch,100%); width:100%}
+.sound-panel.quiet{background:transparent!important;border:0!important;padding:0!important;box-shadow:none!important}
+.sound-list{list-style:none;padding:0;margin:1.1rem 0 0;display:flex;flex-direction:column;gap:.55rem}
+.sound-list li{
+  position:relative;padding:.7rem 0 .7rem 1rem;margin:0;
+  background:transparent;border:0;border-left:3px solid var(--ya-red);
+  border-radius:0;font-size:1.02rem;line-height:1.45;max-width:62ch;color:#222;
+}
+
+.copy-block.wide{max-width:min(96ch,100%)!important}
+@media (prefers-reduced-motion:reduce){.slide,.progress>i{transition:none!important}}
+</style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><span class="ya">Я</span> ткань города · тритмент</div>
+      <div class="top-actions">
+        <span class="counter" id="counter">01 / 38</span>
+        <button class="btn btn-ghost" type="button" id="prev">←</button>
+        <button class="btn btn-ghost" type="button" id="next">→</button>
+        <button class="btn btn-red" type="button" id="exportBtn">Скачать PPTX</button>
+      </div>
+    </header>
+    <div class="progress" aria-hidden="true"><i id="progressFill"></i></div>
+    <main class="deck" id="deck"><section class="slide layout-title compose-fullbleed fit-cover v0" data-slide="0" id="s-title">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner title-inner fullbleed-inner">
+<div class="logos"><span class="logo-ya" title="Яндекс"><i>Я</i></span><span class="logo-word">Яндекс Go</span><span class="logo-sep">×</span><span class="logo-word">Кинопоиск</span><span class="logo-sep">×</span><span class="logo-word">ASAP</span></div>
+<h1 class="display">Ткань города — <em>тритмент</em></h1>
+<p class="sub">Режиссер — Дмитрий Квашнин</p>
+<p class="meta">ASAP × Кинопоиск × Яндекс Go</p>
+</div>
+<div class="slide-num">01 / 38</div>
+</section>
+<section class="slide layout-text compose-pin-left fit-cover v1" data-slide="1" id="s-intro">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-pin-left">
+<div class="copy-block">
+<h2><em>Вступление</em></h2>
+<p>Привет, коллеги!</p>
+<p>Спасибо за приглашение в тендер. Для меня «Ткань города» — это не просто классный бриф, но и очень личный разговор. Я вырос в Омске — городе, где с урбанистикой и комфортной средой традиционно сложные отношения. Поэтому транспортный коллапс, нехватку правильных пространств и все те боли, о которых мы будем говорить, я знаю не по умным статьям, а на уровне мышечной памяти.</p>
+<p>Ниже я собрал свое режиссерское видение. Let’s go!</p>
+</div>
+</div>
+<div class="slide-num">02 / 38</div>
+</section>
+<section class="slide layout-numbered compose-pin-left fit-cover v2" data-slide="2" id="s-understand">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-pin-left">
+<div class="copy-block">
+<h2>Понимание <em>проекта</em></h2>
+<div class="num-list">
+<div class="num-item"><span class="num">1</span><p>Это в первую очередь драйвовое антропологическое наблюдение за нами самими в естественной среде каменных джунглей. Главная идея проекта для меня заключается в том, чтобы показать: город можно и нужно вернуть человеку, и сегодня градостроители, архитекторы и умные алгоритмы уже объединяются ради этой цели, возвращая нам пространство, время и душевное спокойствие.</p></div>
+<div class="num-item"><span class="num">2</span><p>Я четко понимаю, что мы снимаем сериал не для узкой тусовки урбанистов, а для массового зрителя Кинопоиска, который вечером просто хочет расслабиться перед экраном с пачкой чипсов. Моя задача здесь — «хакнуть» его внимание, переведя сложую тему на язык визуального аттракциона.</p></div>
+<div class="num-item"><span class="num">3</span><p>Для меня также  важно, чтобы после финала каждой серии у зрителя рождался четкий инсайт: Яндекс — это невидимая цифровая нервная система мегаполиса, алгоритмы которой реально чинят сломанный город и делают нашу повседневную жизнь комфортнее.</p></div>
+</div></div></div>
+<div class="slide-num">03 / 38</div>
+</section>
+<section class="slide layout-text-accent compose-pin-left fit-cover v3" data-slide="3" id="s-tov">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-pin-left">
+<div class="copy-block accent-panel padded">
+<h2><em>TOV</em></h2>
+<p>Никакой академической духоты, урбанистического снобизма и нравоучений.</p>
+<p>Тональность проекта — дерзкая, легкая и стопроцентно зрительская. Мы переводим сложные смыслы на максимально простой и понятный язык, без кринжового юмора. Мы не читаем мораль, а иронично показываем абсурд привычных городских ритуалов, заставляя зрителя с улыбкой узнать в этом себя.</p>
+<p>Вся подача заточена под то, чтобы человек расслабленно смотрел сериал с за завтраком или после работы, не ломал голову над формулировками, кайфовал от динамики и незаметно для себя впитывал нужный инсайт.</p>
+</div>
+</div>
+<div class="slide-num">04 / 38</div>
+</section>
+<section class="slide layout-text compose-pin-left fit-cover v0" data-slide="4" id="s-metaphor">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-pin-left">
+<div class="copy-block">
+<h2>Метафора <em>проекта</em></h2>
+<p>Мы не только рассуждаем о ткани мегаполиса, но и физически собираем из нее сериал.</p>
+<p>Название проекта мне очень понравилось и, на мой взгляд  — это наш главный визуальный инструмент и метафора.  Хотелось бы раскрыть его на уровне визуала чуть более буквально на трех уровнях: через графические решения, монтаж и работу со съемкой города.</p>
+<p>Объясняю ниже.</p>
+</div>
+</div>
+<div class="slide-num">05 / 38</div>
+</section>
+<section class="slide layout-split compose-split-ltr fit-cover v1" data-slide="5" id="s-metaphor-gfx">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-split-ltr">
+<div class="copy-block">
+<h2>Метафора <em>в графике</em></h2>
+<p>Мы берем заявленную в концепте крафтовую дудл-анимацию и простые ручные линии, но даем им физическое обоснование. Теперь это буквально нити, которые пронизывают и сшивают весь визуал проекта.</p>
+<p>Нить тянется за нарисованной иголочкой, которая петляет по экрану, или разматывается из клубка, усиливая прямую связь с названием.</p>
+<p>Как вариант, в самом начале эта нить выпрыгивает прямо из цифрового интерфейса Яндекс Go и бежит дальше по экрану, связывая кадры через красивые, бесшовные переходы.</p>
+</div>
+<div class="media-block solo">
+<figure><img src="assets/image68.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">06 / 38</div>
+</section>
+<section class="slide layout-split compose-split-rtl-stack fit-natural v2" data-slide="6" id="s-metaphor-edit">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-split-rtl-stack">
+<div class="copy-block">
+<h2>Метафора <em>в монтаже</em></h2>
+<p>Сплит-скрины: Когда мы делим экран на две части, граница между кадрами буквально «прошивается» нашей графической нитью.</p>
+<p>Переходы: Смена сцен или смысловых блоков происходит через выталкивание (слайд-шоу) кадров, границы которых также стянуты крупными графическими стежками.</p>
+</div>
+<div class="media-stack">
+<figure><img src="assets/image50.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image16.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">07 / 38</div>
+</section>
+<section class="slide layout-text compose-pin-left fit-cover v3" data-slide="7" id="s-metaphor-shoot">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-pin-left">
+<div class="copy-block">
+<h2>Метафора <em>в съемке</em></h2>
+<p>В живой съемке среды мы охотимся за визуальными паттернами архитектуры и улиц, которые выглядят как разрозненные «лоскуты» города.</p>
+<p>Снимаем детальные планы стен зданий, искаженные отражения в стеклянных фасадах, геометричные паттерны тротуарной плитки и асфальтовых дорожек.</p>
+<p>Ловим красивую жесткую светотень и снимаем крупные планы ног, снующих по оживленным улицам.</p>
+<p>Все эти детали, фактуры и паттерны собираются на монтаже в единое «лоскутное одеяло», которое наша графическая нить сшивает воедино, метафорично заявляя проект с первых же секунд.</p>
+</div>
+<div class="next-hint">далее →</div>
+</div>
+<div class="slide-num">08 / 38</div>
+</section>
+<section class="slide layout-gallery compose-gallery-mid fit-natural v0" data-slide="8" id="s-metaphor-grid">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-gallery-mid">
+<h2 class="gallery-title">Метафора <em>в съемке</em></h2>
+<div class="gallery cols-3">
+<figure><img src="assets/image54.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image80.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image74.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image83.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image71.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image6.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">09 / 38</div>
+</section>
+<section class="slide layout-section compose-pin-center fit-cover v1" data-slide="9" id="s-city-section">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner section-inner fullbleed-inner">
+<h2 class="display">Съемка <em>города</em></h2>
+</div>
+<div class="slide-num">10 / 38</div>
+</section>
+<section class="slide layout-text compose-pin-left fit-cover v2" data-slide="10" id="s-dopamine">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-pin-left">
+<div class="copy-block">
+<h2>Общий вайб и съемка людей: Дофаминовый <em>контраст</em></h2>
+<p>Темы, которые мы препарируем — пробки, выгорание, кража времени — довольно тяжелые. Чтобы сериал не стал депрессивной социалкой, мы балансируем эти смыслы светлым, «дофаминовым» визуалом. Картинка должна излучать энергию, легкость и драйв.</p>
+<p>Для этого мы уходим в дневные смены и ловим активное солнце. Спикеров и прохожих намеренно стилизуем в яркие, сочные образы, визуально отрывая их от серого бетона. На посте усиливаем эффект теплой цветокоррекцией.</p>
+<p>В стрит-съемке используем сверхширокоугольные объективы и фишай. Это дает смелую перспективу в динамике, добавляет кадру воздуха и превращает наблюдение за горожанами в бодрый визуальный аттракцион, окончательно убивая академическую духоту.</p>
+</div>
+</div>
+<div class="slide-num">11 / 38</div>
+</section>
+<section class="slide layout-gallery compose-gallery-top fit-cover v3" data-slide="11" id="s-mood-people">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-gallery-top">
+<h2 class="gallery-title">Мудборд съемки людей в постановочных <em>сценах</em></h2>
+<div class="gallery cols-3">
+<figure><img src="assets/image73.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image42.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image19.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image65.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image40.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image57.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">12 / 38</div>
+</section>
+<section class="slide layout-gallery compose-gallery-top fit-cover v0" data-slide="12" id="s-mood-vibe">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-gallery-top">
+<h2 class="gallery-title">Мудборд света, цвета и общего <em>вайба</em></h2>
+<div class="gallery cols-3">
+<figure><img src="assets/image4.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image15.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image45.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image47.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image26.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image70.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">13 / 38</div>
+</section>
+<section class="slide layout-gallery-text compose-split-rtl fit-cover v1" data-slide="13" id="s-geometry">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-split-rtl">
+<div class="copy-block">
+<h2>Внимание <em>к геометрии</em></h2>
+<p>Мы целенаправленно ищем строгие паттерны: ритмы окон панелек, изгибы развязок и монолитные фасады. Снимаем это максимально чисто, через строгие фронтальные ракурсы и симметрию, чтобы мегаполис выглядел как гигантский чертеж.</p>
+<p>Эта безупречная, давящая геометрия сработает как идеальный контрастный фон для нашего антропологического наблюдения за хаотичной суетой людей и машин. А главное, строгие формы зданий станут естественной «миллиметровкой» для графической нити, которая будет тречиться прямо по граням фасадов и направляющим улиц.</p>
+</div>
+<div class="gallery cols-2">
+<figure><img src="assets/image13.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image61.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image53.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image64.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">14 / 38</div>
+</section>
+<section class="slide layout-gallery-text compose-split-ltr-stack fit-natural v2" data-slide="14" id="s-light">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-split-ltr-stack">
+<div class="copy-block">
+<h2>Светотень и жесткий <em>контраст</em></h2>
+<p>Мы будем активно ловить естественное солнечное освещение, выискивая яркие направленные лучи и глубокие тени. Графичные световые рисунки на фасадах, паттерны на асфальте и жесткие контрастные силуэты людей не просто добавят картинке кинематографичной «солнечности» и объема, но и максимально подчеркнут ту самую архитектурную геометрию, сделав город в кадре физически осязаемым.</p>
+</div>
+<div class="media-stack">
+<figure><img src="assets/image1.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image55.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image2.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">15 / 38</div>
+</section>
+<section class="slide layout-gallery compose-gallery-mid fit-contain v3" data-slide="15" id="s-light-2">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-gallery-mid">
+<h2 class="gallery-title">Светотень и жесткий <em>контраст</em></h2>
+<div class="gallery cols-3">
+<figure><img src="assets/image14.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image44.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image78.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">16 / 38</div>
+</section>
+<section class="slide layout-text compose-pin-left fit-cover v0" data-slide="16" id="s-reflections-intro">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-pin-left">
+<div class="copy-block">
+<h2>Отражения как естественные <em>фильтры</em></h2>
+<p>Чтобы наше наблюдение за людьми не было плоским, мы используем саму городскую среду как сложную систему оптических линз. Мы будем фиксировать суету мегаполиса косвенно: сквозь отражения в лужах, блики зеркальных бизнес-центров, через стекла стоящих в пробке машин или полупрозрачные остановки. Это усложнит кадр, добавит ему многослойности и той самой вуайеристичности, где мы изучаем горожан исключительно через призму самого города.</p>
+</div>
+</div>
+<div class="slide-num">17 / 38</div>
+</section>
+<section class="slide layout-gallery compose-gallery-mid fit-natural v1" data-slide="17" id="s-glass">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-gallery-mid">
+<h2 class="gallery-title">Стекла <em>и фильтры</em></h2>
+<div class="gallery cols-2">
+<figure><img src="assets/image77.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image7.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image66.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image29.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">18 / 38</div>
+</section>
+<section class="slide layout-gallery compose-gallery-row fit-natural v2" data-slide="18" id="s-reflections">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-gallery-row">
+<h2 class="gallery-title"><em>Отражения</em></h2>
+<div class="gallery cols-4">
+<figure><img src="assets/image84.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image52.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image17.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image9.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">19 / 38</div>
+</section>
+<section class="slide layout-hero-media compose-split-rtl fit-cover v3" data-slide="19" id="s-dynamic">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-split-rtl">
+<div class="copy-block">
+<h2>Динамичные кадры <em>города</em></h2>
+<p>Мы не ограничиваемся выверенной статикой и геометрией. Чтобы передать реальный пульс мегаполиса, насыщаем стрит-съемку кинетикой. Снимаем город в постоянном движении — прямо из окон несущейся машины, чтобы улицы летели мимо зрителя сплошным потоком.</p>
+<p>Включаем агрессивную работу оптикой: хлесткие наезды и отъезды (зум), резкие переводы фокуса с первого плана на дальний. Это мгновенно собьет излишнюю открыточность и добавит картинке живого, неконтролируемого драйва.</p>
+</div>
+<div class="media-block solo">
+<figure><img src="assets/image56.gif" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">20 / 38</div>
+</section>
+<section class="slide layout-split compose-split-rtl-stack fit-natural v0" data-slide="20" id="s-grip">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-split-rtl-stack">
+<div class="copy-block">
+<h2>Грип-кадры <em>и POV</em></h2>
+<p>Чтобы окончательно разорвать телевизионную статику и добавить кинематографичной динамики, мы делаем ставку на нестандартный риггинг и грип-кадры. Камера перестает быть просто сторонним наблюдателем и физически интегрируется в среду.</p>
+<p>Мы жестко крепим камеры на все возможные движущиеся поверхности и элементы городской мобильности: рули самокатов, капоты и двери такси, поручни автобусов, курьерские сумки и даже смартфоны в руках людей. Эти субъективные POV-ракурсы дадут зрителю эффект абсолютного присутствия, позволят физически почувствовать скорость мегаполиса изнутри и на 100% поддержат тот самый драйвовый, дофаминовый ритм сериала.</p>
+</div>
+<div class="media-stack">
+<figure><img src="assets/image27.gif" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image30.gif" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image23.gif" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">21 / 38</div>
+</section>
+<section class="slide layout-hero-media compose-split-rtl-stack fit-natural v1" data-slide="21" id="s-timelapse">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-split-rtl-stack">
+<div class="copy-block">
+<h2><em>Таймлапсы</em></h2>
+<p>Таймлапсы в проекте работают как инструмент управления временем. Они решают сразу две задачи: с одной стороны, фиксируют масштаб и непрерывный ход городских суток. С другой — идеально передают броуновскую суету мегаполиса, сжимая многочасовые потоки машин и людей до гипнотического визуального аттракциона.</p>
+</div>
+<div class="media-stack">
+<figure><img src="assets/image20.gif" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image48.gif" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">22 / 38</div>
+</section>
+<section class="slide layout-gallery-text compose-split-rtl fit-cover v2" data-slide="22" id="s-observe">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-split-rtl">
+<div class="copy-block">
+<h2>Эффект <em>наблюдения</em></h2>
+<p>Мы создаем эффект вуайеристического «подглядывания» за жителями. Чтобы выхватывать непостановочные эмоции, работаем с дистанции на длинном фокусе. Параллельно усложняем композицию естественным фреймингом: снимаем через арки, пролеты и объекты на переднем плане. Это дает кадру глубину и подчеркивает ощущение наблюдения за закрытой жизнью мегаполиса.</p>
+</div>
+<div class="gallery cols-2">
+<figure><img src="assets/image8.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image63.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image59.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image39.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">23 / 38</div>
+</section>
+<section class="slide layout-split compose-split-rtl-stack fit-natural v3" data-slide="23" id="s-interview">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-split-rtl-stack">
+<div class="copy-block">
+<h2><em>Интервью</em></h2>
+<p>Мы уходим от скучных офисных фонов и выводим спикеров в реальную среду. Пишем интервью там, где город живет и дышит: под массивными эстакадами, на крышах, в тихих уютных дворах или на парковых лавочках, внутри просторных зданий.</p>
+<p>Визуально мы категорически не зажимаем героев в тесные рамки классического портрет на общема. Наоборот, даем в кадре максимум воздуха, свободы и пространства. Мы снимаем широко и показываем масштаб вокруг, чтобы подчеркнуть: наш эксперт — это не оторванная от реальности «говорящая голова», а органичная часть той самой городской ткани, которую мы исследуем.</p>
+<p>Композиционно на общем плане хочется расположить спикеров по центру, а на крупном — слегка в “тупой угол”, создав ощущение, будто камера случайно подсматривает за человеком и раскрывает негативное пространство как часть окружения.</p>
+</div>
+<div class="media-stack">
+<figure><img src="assets/image58.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image72.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">24 / 38</div>
+</section>
+<section class="slide layout-hero-media compose-hero-top fit-contain v0" data-slide="24" id="s-interview-gen">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-hero-top">
+<h2 class="gallery-title">Еще примеры <em>(генерации)</em>:</h2>
+<div class="media-block solo">
+<figure><img src="assets/image32.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">25 / 38</div>
+</section>
+<section class="slide layout-text-accent compose-pin-left fit-cover v1" data-slide="25" id="s-optional">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-pin-left">
+<div class="copy-block accent-panel padded">
+<h2>Опциональное <em>предложение</em></h2>
+<p>В таком проекте мне видится место для необычных приемов и сюрреализма: работы с преломлением пространства, как в “Начале” Нолана и гигантизмом.</p>
+<p>Сюрреализм здесь — не просто вау-эффект, а драматургический инструмент. Вместо сухой инфографики мы используем кинематографичную метафору. Это мост между человеком и мегаполисом: мы показываем, как психика горожанина искажает пространство и как среда давит в ответ.</p>
+<p>Этот прием уводит нас от репортажности в сторону премиального формата.</p>
+<p>Ниже объясняю, что, для чего и как именно хочу это внедять. Преломление среды:</p>
+</div>
+</div>
+<div class="slide-num">26 / 38</div>
+</section>
+<section class="slide layout-gallery-text compose-split-mid fit-contain v2" data-slide="26" id="s-bend">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-split-mid">
+<div class="copy-block">
+<h2>Преломление <em>среды</em></h2>
+<p>Загибающиеся улицы (в духе «Начала») и бесконечные паттерны. Идеально передает когнитивный перегруз, городскую суету и эффект «дня сурка».</p>
+</div>
+<div class="gallery cols-3">
+<figure><img src="assets/image25.gif" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image38.gif" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image82.gif" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">27 / 38</div>
+</section>
+<section class="slide layout-gallery-text compose-split-rtl fit-cover v3" data-slide="27" id="s-giant">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-split-rtl">
+<div class="copy-block">
+<h2><em>Гигантизм</em>:</h2>
+<p>Огромные люди в игрушечном городе. Это позиция исследователя: человек может руками перестраивать логистику, показывая масштаб нашего влияния на среду.</p>
+</div>
+<div class="gallery cols-3">
+<figure><img src="assets/image31.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image41.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image79.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image67.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image62.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image43.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">28 / 38</div>
+</section>
+<section class="slide layout-columns-3 compose-pin-left fit-cover v0" data-slide="28" id="s-surreal-ways">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-cols">
+<h2 class="gallery-title">Три варианта интеграции <em>сюрреализма</em></h2>
+<div class="col-grid">
+<article class="col-card"><div class="col-num">1</div><h3>Интро и отбивки</h3><p>Установка правил. Ставим в начале серий или между смысловыми блоками. Это визуальный «рубильник» (преломление пространства в духе «Начала»), который заявляет город как живой организм и переключает внимание зрителя с локальных проблем на глобальный масштаб.</p></article>
+<article class="col-card"><div class="col-num">2</div><h3>Иллюстрация тезисов</h3><p>Позиция творца. Используем внутри блоков с урбанистами и экспертами. Вместо скучных схем включаем гигантизм: герой идет по игрушечному городу и руками переставляет здания, наглядно показывая, как человек может менять среду.</p></article>
+<article class="col-card"><div class="col-num">3</div><h3>Визуализация проблем</h3><p>Искажение и суета. Включаем в кульминациях, когда говорим о стрессе, выгорании и пробках. Улицы закольцовываются в коридоры, передавая ощущение «дня сурка». Благодаря нашему яркому свету это выглядит не как мрачный хоррор, а как сочный, динамичный визуальный трип.</p></article>
+</div></div>
+<div class="slide-num">29 / 38</div>
+</section>
+<section class="slide layout-roadmap compose-roadmap-col fit-cover v1" data-slide="29" id="s-hybrid">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-roadmap-col">
+<div class="copy-block wide">
+<h2>Как <em>реализуем?</em></h2>
+<p class="rm-lead">Для этого используем гибридный продакшн.Реализуем сложные сцены контролируемо и без раздувания бюджетов на классическое 3D:</p>
+<div class="roadmap">
+<div class="rm-step"><span class="rm-n">1</span><p>Снимаем героев на нейтральном фоне или хромакее, с нейтральным светом</p></div>
+<div class="rm-arrow" aria-hidden="true"></div>
+<div class="rm-step"><span class="rm-n">2</span><p>Сюрреалистичную среду генерируем через нейросети, сохраняя единую стилистику проекта.</p></div>
+<div class="rm-arrow" aria-hidden="true"></div>
+<div class="rm-step"><span class="rm-n">3</span><p>Бесшовно сводим живую съемку и AI-генерацию, получая свежий и высокотехнологичный кадр.</p></div>
+</div></div></div>
+<div class="slide-num">30 / 38</div>
+</section>
+<section class="slide layout-text compose-pin-left fit-cover v2" data-slide="30" id="s-edit">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-pin-left">
+<div class="copy-block">
+<h2><em>Монтаж</em></h2>
+<p>Темпоритм и динамика в данном проекте должны быть высокими, под стать формату городской жизни. Но без перегиба.</p>
+<p>Мы не стремимся сделать “СДВГ-монтаж”, но насытим визуал сменой планов, многокамерной съемкой, сплит-скринами, обилием перебивочных материалов, графическими вставками.</p>
+<p>Также отдельной фишкой могут стать сплит-скрины, простые коллажные вставки и клиповый монтаж как таковой.</p>
+</div>
+</div>
+<div class="slide-num">31 / 38</div>
+</section>
+<section class="slide layout-gallery compose-gallery-top fit-cover v3" data-slide="31" id="s-edit-mood">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-gallery-top">
+<h2 class="gallery-title"><em>Мудборд</em></h2>
+<div class="gallery cols-3">
+<figure><img src="assets/image81.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image37.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image35.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image28.gif" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image75.gif" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image10.gif" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">32 / 38</div>
+</section>
+<section class="slide layout-text compose-pin-left fit-cover v0" data-slide="32" id="s-graphics">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-pin-left">
+<div class="copy-block">
+<h2>Графика: стык цифры <em>и крафта</em></h2>
+<p>Я согласен с графическими решениями, которые предлагаются в презентации проекта. Хочу лишь предложить дополнения, которые, возможно, усилят визуал.</p>
+<p>Мы сохраняем заявленную базу, но докручиваем ее через коллажную эстетику. Поскольку суть проекта — это баланс между человеком и алгоритмами, графика будет строиться на визуальном конфликте двух миров.</p>
+<p>С одной стороны — «ламповый» человеческий крафт: шероховатые текстуры, ручные линии и несовершенства. С другой — нейросетевой минимализм: элементы UI, строгая типографика и чистые цифровые формы. Этот прием идеально сработает в динамичных интро и при оформлении терминов, когда стерильный интерфейс органично наслаивается на живую, рукотворную фактуру.</p>
+</div>
+</div>
+<div class="slide-num">33 / 38</div>
+</section>
+<section class="slide layout-gallery compose-gallery-row fit-natural v1" data-slide="33" id="s-gfx-mood">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-gallery-row">
+<h2 class="gallery-title"><em>Мудборд</em></h2>
+<div class="gallery cols-4">
+<figure><img src="assets/image18.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image11.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image76.png" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image22.png" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">34 / 38</div>
+</section>
+<section class="slide layout-hero-media compose-split-mid fit-natural v2" data-slide="34" id="s-reconstruct">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-split-mid">
+<div class="copy-block">
+<h2><em>Реконструкции</em></h2>
+<p>Значительную часть ретроспективы мы можем закрыть миксом из найденных в сети архивов и материалов, сгенерированных нейросетями. Использование ИИ дает тотальный контроль над содержанием при воссоздании нужных исторических образов. Чтобы объединить эти источники в единое полотно, мы применим сквозную стилизацию всего ретро-блока под аналоговую плёнку и старый VHS (цвет и ч/б).</p>
+</div>
+<div class="gallery cols-2">
+<figure><img src="assets/image21.gif" alt="" loading="lazy" /></figure>
+<figure><img src="assets/image33.gif" alt="" loading="lazy" /></figure>
+</div>
+</div>
+<div class="slide-num">35 / 38</div>
+</section>
+<section class="slide layout-text-list compose-pin-left fit-cover v3" data-slide="35" id="s-sound">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-pin-left">
+<div class="copy-block sound-panel quiet">
+<h2><em>Саунд-дизайн</em></h2>
+<p>Городские джунгли должны звучать непрерывно. Густой, фактурный шум мегаполиса сопровождает всё, что мы видим, создавая плотную, реалистичную базу.</p>
+<p>Но главный прием — это работа на контрасте. В кульминационные моменты мы намеренно «выключаем» город, оставляя в эфире только одну изолированную звуковую дорожку для усиления эффекта. Например:</p>
+<ul class="sound-list">
+<li>Только шум листьев на фоне визуально оживленной, несущейся трассы.</li>
+<li>Только четкий звук шагов по брусчатке посреди беззвучной толпы.</li>
+<li>Только одиночный гул двигателя машины.</li>
+</ul></div></div>
+<div class="slide-num">36 / 38</div>
+</section>
+<section class="slide layout-text compose-pin-left fit-cover v0" data-slide="36" id="s-music">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner stage compose-pin-left">
+<div class="copy-block">
+<h2><em>Музыка</em></h2>
+<p>Здесь хочется поработать, с одной стороны, обильно с саунд-дизайном, который будет плотно и органично вплетен в городскую среду. С другой стороны, что касается музыки, мы планируем использовать инди-звучание с широким диапазоном: от драйвового рока до спокойного, почти меланхоличного, неспешного синти-попа или lo-fi форматов. И всё это — строго в рамках инди-жанра.</p>
+<p>Для этого мы можем использовать реальные треки российских исполнителей независимой инди-сцены. Мы задействуем инструменталы как от известных артистов, таких как Сироткин или «Бонд с кнопкой», так и от менее известных, локальных музыкантов. Такой подход полностью избавит нас от безликого стокового звучания, сильно усилит массовость проекта и создаст для зрителя тот самый искренний, узнаваемый вайб.</p>
+</div>
+</div>
+<div class="slide-num">37 / 38</div>
+</section>
+<section class="slide layout-title compose-fullbleed fit-cover v1" data-slide="37" id="s-end">
+
+<svg class="doodle" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <path class="d-red" d="M-20 120 C 180 40, 260 220, 420 160 S 620 40, 780 180 S 980 320, 1220 200" fill="none"/>
+  <path class="d-yel" d="M-40 520 C 140 600, 280 440, 460 500 S 700 620, 880 480 S 1080 380, 1240 560" fill="none"/>
+  <path class="d-red thin" d="M900 40 C 860 160, 940 240, 880 360 S 820 520, 900 680" fill="none"/>
+  <path class="d-yel thin" d="M80 700 C 200 640, 160 560, 280 520" fill="none"/>
+</svg>
+
+<div class="slide-inner title-inner fullbleed-inner">
+<div class="logos"><span class="logo-ya" title="Яндекс"><i>Я</i></span><span class="logo-word">Яндекс Go</span><span class="logo-sep">×</span><span class="logo-word">Кинопоиск</span><span class="logo-sep">×</span><span class="logo-word">ASAP</span></div>
+<h1 class="display">Давайте <em>снимать!</em></h1>
+<p class="sub">Дмитрий Квашнин</p>
+<p class="meta">Ткань города</p>
+</div>
+<div class="slide-num">38 / 38</div>
+</section></main>
+    <div class="nav-side" id="dots" aria-label="Навигация по слайдам"></div>
+    <div class="hint">← → · клик по краям · пробел</div>
+    <div class="toast" id="toast"></div>
+  </div>
+  <script>
+(() => {
+  const slides = [...document.querySelectorAll('.slide')];
+  const counter = document.getElementById('counter');
+  const dotsWrap = document.getElementById('dots');
+  const toast = document.getElementById('toast');
+  const progress = document.getElementById('progressFill');
+  const EXPORT = 'export/tkan_goroda_treatment.pptx';
+  let i = 0;
+
+  slides.forEach((_, idx) => {
+    const b = document.createElement('button');
+    b.className = 'dot' + (idx === 0 ? ' active' : '');
+    b.type = 'button';
+    b.setAttribute('aria-label', 'Слайд ' + (idx + 1));
+    b.addEventListener('click', () => go(idx));
+    dotsWrap.appendChild(b);
+  });
+  const dots = [...dotsWrap.querySelectorAll('.dot')];
+
+  function fitMediaStacks(scope) {
+    const root = scope || slides[i];
+    if (!root) return;
+    const stage = root.querySelector('.stage') || root;
+    const pad = 16;
+    const avail = Math.max(160, stage.clientHeight - pad);
+    root.querySelectorAll('.media-stack').forEach((stack) => {
+      const imgs = [...stack.querySelectorAll('img')];
+      if (!imgs.length) return;
+      stack.style.width = '100%';
+      stack.style.maxWidth = '100%';
+      stack.style.marginInline = '0';
+      stack.style.justifySelf = 'stretch';
+      imgs.forEach((img) => {
+        img.style.width = '100%';
+        img.style.height = 'auto';
+        img.style.maxHeight = 'none';
+        img.style.objectFit = 'unset';
+      });
+      void stack.offsetHeight;
+      const col = Math.round(stack.getBoundingClientRect().width) || stack.clientWidth;
+      let need = stack.getBoundingClientRect().height;
+      if (need <= avail + 2 || !col) return;
+      let w = Math.max(140, Math.floor(col * (avail / need)));
+      w = Math.min(col, w);
+      stack.style.width = w + 'px';
+      stack.style.justifySelf = 'center';
+      stack.style.marginInline = 'auto';
+      void stack.offsetHeight;
+      need = stack.getBoundingClientRect().height;
+      if (need > avail + 2) {
+        stack.style.width = Math.max(120, Math.floor(w * (avail / need))) + 'px';
+      }
+    });
+  }
+
+  function go(n) {
+    i = (n + slides.length) % slides.length;
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    dots.forEach((d, k) => d.classList.toggle('active', k === i));
+    counter.textContent = String(i + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
+    if (progress) progress.style.width = ((i + 1) / slides.length * 100).toFixed(2) + '%';
+    [i, i + 1, i + 2].forEach((k) => {
+      const s = slides[k % slides.length];
+      s.querySelectorAll('img').forEach((img) => {
+        if (img.dataset.src) { img.src = img.dataset.src; delete img.dataset.src; }
+      });
+    });
+    requestAnimationFrame(() => {
+      fitMediaStacks(slides[i]);
+      const imgs = [...slides[i].querySelectorAll('.media-stack img')];
+      Promise.all(imgs.map((img) => img.complete ? 1 : new Promise((r) => { img.onload = img.onerror = r; }))).then(() => fitMediaStacks(slides[i]));
+    });
+  }
+
+  document.getElementById('prev').addEventListener('click', () => go(i - 1));
+  document.getElementById('next').addEventListener('click', () => go(i + 1));
+  window.addEventListener('keydown', (e) => {
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'TEXTAREA' || tag === 'INPUT') return;
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(i + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(i - 1); }
+    if (e.key === 'Home') go(0);
+    if (e.key === 'End') go(slides.length - 1);
+  });
+
+  document.getElementById('deck').addEventListener('click', (e) => {
+    if (e.target.closest('a,button,img,figure')) return;
+    const x = e.clientX / window.innerWidth;
+    if (x > 0.66) go(i + 1);
+    else if (x < 0.33) go(i - 1);
+  });
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3200);
+  }
+
+  async function downloadExport() {
+    const candidates = [
+      { url: 'export/tkan_goroda_treatment.key', name: 'Ткань_города_тритмент.key', label: 'Keynote' },
+      { url: 'export/tkan_goroda_treatment_pixel.pptx', name: 'Ткань_города_тритмент.pptx', label: 'PPTX' },
+      { url: 'export/tkan_goroda_treatment.pptx', name: 'Ткань_города_тритмент.pptx', label: 'PPTX' },
+    ];
+    showToast('Ищу файл экспорта…');
+    for (const c of candidates) {
+      try {
+        const res = await fetch(c.url, { method: 'HEAD' });
+        if (!res.ok) continue;
+        showToast('Скачиваю ' + c.label + '…');
+        const full = await fetch(c.url);
+        if (!full.ok) continue;
+        const blob = await full.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = c.name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        showToast(c.label + ' скачан');
+        return;
+      } catch (_) {}
+    }
+    showToast('Файл экспорта недоступен на этом хосте — возьми .key из папки export/');
+  }
+  document.getElementById('exportBtn').addEventListener('click', downloadExport);
+
+  go(0);
+  window.addEventListener('resize', () => fitMediaStacks(slides[i]));
+})();
+</script>
+</body>
+</html>
