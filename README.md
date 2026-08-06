@@ -1,12 +1,8 @@
 # Ткань города — тритмент
 
-Интерактивный режиссёрский тритмент (ASAP × Кинопоиск × Яндекс Go).
+Интерактивная дека для клиента (ASAP × Студиотех × Яндекс Go).
 
-**Автор:** Дмитрий Квашнин
+- **Автор:** Дмитрий Квашнин
+- **Сборка:** `python3 package_gh_pages.py`
 
-## Навигация
-← → · пробел · клик по краям слайда
-
-## Скачать
-Кнопка **Скачать Keynote** — если файл доступен в `export/`.
-Иначе возьми локально: `export/tkan_goroda_treatment.key` / `tkan_goroda_treatment_pixel.pptx`.
+PPTX skipped: 126.3 MB exceeds GitHub 95 MB limit. Host separately or compress.
